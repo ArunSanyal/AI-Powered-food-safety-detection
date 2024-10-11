@@ -24,17 +24,16 @@ def predict_health_risks(food_item, ingredients, consumption_frequency):
 
     Based on this information, please provide:
     1. Potential health risks associated with consuming this food item, especially if consumed in unhealthy amounts.
-    2. A list of specific diseases (e.g., diabetes, heart disease) that could arise from regular consumption of this food, particularly if it contains unsafe ingredients or is consumed excessively.
+    2. A list of at least 3-5 specific diseases (e.g., diabetes, heart disease) that could arise from regular consumption of this food, particularly if it contains unsafe ingredients or is consumed excessively. Format this as "Most likely diseases: [disease1, disease2, ...]"
     3. Any concerning ingredients and their specific health impacts.
     4. How the consumption frequency might affect the likelihood or severity of these health risks.
     5. Rate the impact (0-10 scale) of this food on the following health aspects:
-       - Cardiovascular health
-       - Blood sugar levels
-       - Weight management
-       - Digestive health
-       - Nutrient balance
+       - Cardiovascular health: [score]
+       - Blood sugar levels: [score]
+       - Weight management: [score]
+       - Digestive health: [score]
+       - Nutrient balance: [score]
 
-    Please list the diseases in a format such as "Most likely diseases: [disease1, disease2, ...]" for easy extraction.
     Present your analysis in a structured, easy-to-read format with bullet points or numbered lists where appropriate.
     """
     model = genai.GenerativeModel('gemini-pro')
@@ -70,12 +69,15 @@ def extract_risk_score(text):
     return min(max((blob.sentiment.polarity + 1) / 2 * 100, 0), 100)
 
 def extract_diseases(text):
-    match = re.search(r'Most Likely Diseases.*?:\s*(.*)', text, re.IGNORECASE)
+    # Updated pattern to capture diseases after "Most likely diseases:"
+    match = re.search(r'Most likely diseases:?\s*([^\n]*)', text, re.IGNORECASE)
     if match:
         diseases_raw = match.group(1)
+        # Split the list of diseases by common delimiters
         diseases = re.split(r',|\band\b|\n', diseases_raw)
         return [disease.strip() for disease in diseases if disease.strip()]
     return []
+
 
 def extract_health_impacts(text):
     impact_pattern = r'(\w+(?:\s+\w+)*)\s*:\s*(\d+)'
@@ -160,31 +162,30 @@ def main():
             risk_score = 100 - extract_risk_score(prediction)  # Adjusted for higher sentiment being lower risk
             st.plotly_chart(create_risk_gauge(risk_score), use_container_width=True)
 
-            col_text, col_table = st.columns([3, 1])
-            
-            with col_text:
-                st.subheader("📊 Analysis Results")
-                st.markdown("### 🚨 Health Risk and Disease Prediction:")
-                st.markdown(prediction)
-
-            with col_table:
-                st.subheader("Most Prominent Diseases")
-                diseases = extract_diseases(prediction)
-                if diseases:
-                    df = pd.DataFrame({"Disease": diseases})
-                    st.table(df)
-                else:
-                    st.write("No specific diseases were mentioned in the analysis.")
-
             # Extract health impacts and create radar chart
             health_impacts = extract_health_impacts(prediction)
             if health_impacts:
                 st.plotly_chart(create_health_impact_radar(health_impacts), use_container_width=True)
             else:
-                st.write("No specific health impact ratings were found in the analysis.")
+                st.warning("No specific health impact ratings were found in the analysis.")
+
+            # Display diseases table
+            st.subheader("Most Prominent Diseases")
+            diseases = extract_diseases(prediction)
+            if diseases:
+                df = pd.DataFrame({"Disease": diseases})
+                st.table(df)
+            else:
+                st.warning("No specific diseases were mentioned in the analysis.")
+
+            # Display text analysis at the bottom
+            st.subheader("📊 Detailed Analysis Results")
+            st.markdown("### 🚨 Health Risk and Disease Prediction:")
+            st.markdown(prediction)
 
         else:
             st.warning("⚠️ Please enter both a food item and at least one ingredient.")
+
 
     st.sidebar.header("About this App")
     st.sidebar.info(
