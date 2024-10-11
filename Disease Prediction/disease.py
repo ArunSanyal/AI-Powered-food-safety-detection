@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configure the Gemini API
-genai.configure(api_key=os.getenv("AIzaSyBqjWUIbvOOMErYs_o5V3T4Z0f4Od6jeyY"))
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 def predict_health_risks(food_item, ingredients):
     # Construct the prompt for the Gemini model
@@ -30,24 +30,34 @@ def predict_health_risks(food_item, ingredients):
 
     return response.text
 
-def main():
-    print("Welcome to the AI-Powered Food Safety and Health Risk Predictor!")
+# Simulated function to get food item and ingredients from another source
+def get_food_data_from_external_source():
+    # This function could be replaced with actual data retrieval logic
+    # For example, it could read from a database, API, or file
+    return "Pizza", ["Wheat flour", "Tomato sauce", "Cheese", "Pepperoni", "Olive oil"]
+
+def analyze_food_safety(food_item, ingredients):
+    print(f"\nAnalyzing food safety and health risks for: {food_item}")
+    print(f"Ingredients: {', '.join(ingredients)}")
     
-    while True:
-        food_item = input("\nEnter the food item (or 'quit' to exit): ")
-        if food_item.lower() == 'quit':
-            break
-        
-        ingredients = input("Enter the ingredients (comma-separated): ").split(',')
-        ingredients = [ing.strip() for ing in ingredients]
+    prediction = predict_health_risks(food_item, ingredients)
+    
+    print("\nHealth Risk and Disease Prediction:")
+    print(prediction)
+    
+    return prediction
 
-        print("\nAnalyzing food safety and health risks...")
-        prediction = predict_health_risks(food_item, ingredients)
-        
-        print("\nHealth Risk and Disease Prediction:")
-        print(prediction)
-
-    print("\nThank you for using the Food Safety and Health Risk Predictor!")
+def main():
+    print("AI-Powered Food Safety and Health Risk Predictor")
+    
+    # Get food data from external source
+    food_item, ingredients = get_food_data_from_external_source()
+    
+    # Analyze the food data
+    analysis = analyze_food_safety(food_item, ingredients)
+    
+    # Here you could do further processing with the analysis result
+    # For example, storing it in a database, sending alerts, etc.
 
 if __name__ == "__main__":
     main()
