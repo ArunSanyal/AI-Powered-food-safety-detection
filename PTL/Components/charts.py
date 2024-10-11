@@ -59,3 +59,8 @@ def create_health_impact_radar(impacts):
     )
     
     return fig
+
+def extract_health_impacts(text):
+    impact_pattern = r'(\w+(?:\s+\w+)*)\s*:\s*(\d+)'
+    impacts = re.findall(impact_pattern, text)
+    return {aspect: int(score) for aspect, score in impacts if int(score) <= 10}

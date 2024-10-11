@@ -49,10 +49,7 @@ def create_safety_chart(analysis):
     return fig
 
 def main():
-    st.set_page_config(page_title="AI-Powered Food Safety Checker", layout="wide")
-
-    # Add a title with better styling
-    st.title("🌿 AI-Powered Food Safety and Ingredient Quantity Checker")
+    # st.title("🧪 Ingredient Analysis")
     st.markdown("<hr>", unsafe_allow_html=True)
 
     # Main input area for food item and ingredients

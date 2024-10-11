@@ -2,12 +2,14 @@ import streamlit as st
 import healthy
 import ingredients
 import disease
+import diet_recommender
+
+# Move this line to the top, outside of any function
+st.set_page_config(page_title="Food Safety & Health Analyzer", page_icon="🍽️", layout="wide")
 
 def main():
-    st.set_page_config(page_title="Food Safety & Health Analyzer", page_icon="🍽️", layout="wide")
-
     st.sidebar.title("Navigation")
-    page = st.sidebar.selectbox("Choose a page", ["Healthy Food Analysis", "Ingredient Analysis", "Disease Prediction"])
+    page = st.sidebar.selectbox("Choose a page", ["Healthy Food Analysis", "Ingredient Analysis", "Diet Recommendation", "Disease Prediction"])
 
     if page == "Healthy Food Analysis":
         st.title("🥗 Healthy Food Analysis")
@@ -15,9 +17,12 @@ def main():
     elif page == "Ingredient Analysis":
         st.title("🧪 Ingredient Analysis")
         ingredients.main()
-    else:
+    elif page == "Disease Prediction":
         st.title("🩺 Disease Prediction")
         disease.main()
+    else:
+        st.title("🍽️ AI-Powered Personalized Diet Recommender")
+        diet_recommender.main()
 
 if __name__ == "__main__":
     main()

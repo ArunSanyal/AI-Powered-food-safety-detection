@@ -28,29 +28,26 @@ def predict_health_risks(food_item, ingredients, consumption_frequency):
     3. Any concerning ingredients and their specific health impacts.
     4. How the consumption frequency might affect the likelihood or severity of these health risks.
     5. Rate the impact (0-10 scale) of this food on the following health aspects:
-       - Cardiovascular health: [score]
-       - Blood sugar levels: [score]
-       - Weight management: [score]
-       - Digestive health: [score]
-       - Nutrient balance: [score]
+       - Cardiovascular health:[score]
+       - Blood sugar levels:[score]
+       - Weight management:[score]
+       - Digestive health:[score]
+       - Nutrient balance:[score]
     6. Most likely diseases
+
+
     Present your analysis in a structured, easy-to-read format with bullet points or numbered lists where appropriate.
+    
+    Note: Do not change the format of the 5th section
     """
     model = genai.GenerativeModel('gemini-pro')
     response = model.generate_content(prompt)
     return response.text
 
-def extract_health_impacts(text):
-    impact_pattern = r'(\w+(?:\s+\w+)*)\s*:\s*(\d+)'
-    impacts = re.findall(impact_pattern, text)
-    return {aspect: int(score) for aspect, score in impacts if int(score) <= 10}
+
 
 
 def main():
-    st.set_page_config(page_title="Food Safety Analyzer", page_icon="🍽️", layout="wide")
-
-    st.title("🍽️ AI-Powered Food Safety and Health Risk Predictor")
-
     st.markdown("""
     <style>
     .big-font {
