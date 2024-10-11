@@ -7,7 +7,7 @@ from textblob import TextBlob
 import plotly.graph_objs as go
 import plotly.express as px
 import pandas as pd
-from Components.charts import *
+from PTL.Components.charts import *
 
 # Load environment variables
 load_dotenv()
