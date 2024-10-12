@@ -17,7 +17,7 @@ from io import BytesIO
 load_dotenv()
 
 # Configure the Google Generative AI API with your API key
-api_key=os.getenv("GOOGLE_API_KEY")
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 # Load the saved MobileNetV2 model
 @st.cache_resource
@@ -68,29 +68,14 @@ st.markdown("""
         background-color: #4CAF50;
         color: white;
         border-radius: 5px;
-        font-weight: bold;
-        padding: 10px 20px;
     }
     .stTextInput>div>div>input {
         background-color: #262730;
         color: #FAFAFA;
         border-color: #4CAF50;
-        border-radius: 5px;
     }
     .stPlotlyChart {
         background-color: #262730;
-    }
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 24px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        background-color: #262730;
-        border-radius: 4px 4px 0 0;
-        padding: 10px 24px;
-        color: #FAFAFA;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: #4CAF50;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -203,25 +188,25 @@ def display_food_analysis(food_name):
 
             col1, col2 = st.columns([1, 2])
 
-            # with col1:
-            #     # Display food image
-            #     food_image = get_food_image(food_name)
-            #     if food_image:
-            #         st.image(food_image, caption=f"Image of {food_name}", use_column_width=True)
-            #     else:
-            #         st.image("https://via.placeholder.com/400x300?text=No+Image+Found", caption="Placeholder Image",
-            #                 use_column_width=True)
+            with col1:
+                # Display food image
+                food_image = get_food_image(food_name)
+                if food_image:
+                    st.image(food_image, caption=f"Image of {food_name}", use_column_width=True)
+                else:
+                    st.image("https://via.placeholder.com/400x300?text=No+Image+Found", caption="Placeholder Image",
+                            use_column_width=True)
 
-            #     # Display overall health assessment
-            #     st.subheader("Overall Health Assessment:")
-            #     if overall_health.lower() == 'safe':
-            #         st.success(f"✅ {food_name} is considered SAFE based on its ingredients.")
-            #     else:
-            #         st.error(f"⚠️ {food_name} is considered UNSAFE based on its ingredients.")
+                # Display overall health assessment
+                st.subheader("Overall Health Assessment:")
+                if overall_health.lower() == 'safe':
+                    st.success(f"✅ {food_name} is considered SAFE based on its ingredients.")
+                else:
+                    st.error(f"⚠️ {food_name} is considered UNSAFE based on its ingredients.")
 
-            # with col2:
-            # Display health chart
-            st.plotly_chart(create_health_chart(ingredients, health_scores), use_container_width=True)
+            with col2:
+                # Display health chart
+                st.plotly_chart(create_health_chart(ingredients, health_scores), use_container_width=True)
 
             # Display ingredient details with hyperlinks
             st.subheader("Ingredient Details:")
@@ -240,13 +225,12 @@ def display_food_analysis(food_name):
             st.error(f"An error occurred during analysis: {str(e)}")
 
 def main():
-    st.title("🍽️ Food Image Classifier and Health Analyzer")
+    st.title("Food Image Classifier and Health Analyzer")
     st.write("Upload an image, use your webcam to classify food, or enter a food name for analysis!")
 
-    tab1, tab2 = st.tabs(["🖼️ Image Classification", "✍️ Manual Entry"])
+    tab1, tab2 = st.tabs(["Image Classification", "Manual Entry"])
 
     with tab1:
-        st.header("Image Classification")
         # File uploader
         uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
 
@@ -254,43 +238,34 @@ def main():
             image = Image.open(uploaded_file)
             st.image(image, caption='Uploaded Image.', use_column_width=True)
             st.write("")
-            with st.spinner("Classifying..."):
-                label, confidence = predict_food(image)
-            st.success(f"Prediction: {label}")
-            st.info(f"Confidence: {confidence:.2f}")
+            st.write("Classifying...")
+            label, confidence = predict_food(image)
+            st.write(f"Prediction: {label}")
+            st.write(f"Confidence: {confidence:.2f}")
             
-            if st.button("Analyze This Food", key="analyze_uploaded"):
+            if st.button("Analyze This Food"):
                 display_food_analysis(label)
 
         # Webcam capture
-        st.subheader("Or use your webcam:")
-        picture = st.camera_input("Take a picture")
-        if picture:
-            image = Image.open(picture)
-            st.image(image, caption='Captured Image.', use_column_width=True)
-            st.write("")
-            with st.spinner("Classifying..."):
+        st.write("Or use your webcam:")
+        if st.button('Capture from Webcam'):
+            picture = st.camera_input("Take a picture")
+            if picture:
+                image = Image.open(picture)
+                st.image(image, caption='Captured Image.', use_column_width=True)
+                st.write("")
+                st.write("Classifying...")
                 label, confidence = predict_food(image)
-            st.success(f"Prediction: {label}")
-            st.info(f"Confidence: {confidence:.2f}")
-            
-            if st.button("Analyze This Food", key="analyze_webcam"):
-                display_food_analysis(label)
+                st.write(f"Prediction: {label}")
+                st.write(f"Confidence: {confidence:.2f}")
+                
+                if st.button("Analyze This Food"):
+                    display_food_analysis(label)
 
     with tab2:
-        st.header("Manual Food Entry")
-        food_name = st.text_input("Enter a food item:", "cake")
-        if st.button("Analyze Food", key="analyze_manual"):
+        food_name = st.text_input("Enter a food item:", "")
+        if st.button("Analyze Food"):
             if food_name:
-                # Generate and display the food image
-                food_image = get_food_image(food_name)
-                if food_image:
-                    st.image(food_image, caption=f"Image of {food_name}", use_column_width=True)
-                else:
-                    st.image("https://via.placeholder.com/400x300?text=No+Image+Found", caption="Placeholder Image",
-                            use_column_width=True)
-                
-                # Display the food analysis
                 display_food_analysis(food_name)
             else:
                 st.warning("Please enter a food item to analyze.")

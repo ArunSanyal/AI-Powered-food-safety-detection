@@ -13,8 +13,6 @@ load_dotenv()
 # Configure the Google Generative AI API with your API key
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
-# Set page config for a wider layout with dark theme
-st.set_page_config(layout="wide", page_title="Food Safety Analyzer", page_icon="🍽️")
 
 # Custom CSS to enhance the app's appearance with dark theme
 st.markdown("""
@@ -48,21 +46,51 @@ st.markdown("""
 
 
 def analyze_food(food_name):
-    prompt = f"""
-    Food: {food_name}
-    - List the main ingredients in this food item.
-    - For each ingredient, provide a health score from 0 to 10 (0 being very unhealthy, 10 being very healthy).
-    - Finally, provide an overall assessment of whether the food is considered safe or unsafe based on the ingredients.
-    Please structure the response as follows:
-    Ingredients: <ingredient1>|<ingredient2>|<ingredient3>...
-    Health Scores: <score1>|<score2>|<score3>...
-    Overall Food Health: <safe/unsafe>
-    """
+    st.subheader(f"Analyzing: {food_name}")
+    
+    with st.spinner("Analyzing food safety and health risks..."):
+        try:
+            analysis = analyze_food(food_name)
+            ingredients, health_scores, overall_health = parse_analysis(analysis)
 
-    model = genai.GenerativeModel('gemini-pro')
-    response = model.generate_content(prompt)
-    output = response.text.strip()
-    return output
+            col1, col2 = st.columns([1, 2])
+
+            with col1:
+                # Display food image
+                food_image = get_food_image(food_name)
+                if food_image:
+                    st.image(food_image, caption=f"Image of {food_name}", use_column_width=True)
+                else:
+                    st.image("https://via.placeholder.com/400x300?text=No+Image+Found", caption="Placeholder Image",
+                            use_column_width=True)
+
+                # Display overall health assessment
+                st.subheader("Overall Health Assessment:")
+                if overall_health.lower() == 'safe':
+                    st.success(f"✅ {food_name} is considered SAFE based on its ingredients.")
+                else:
+                    st.error(f"⚠️ {food_name} is considered UNSAFE based on its ingredients.")
+
+            with col2:
+                # Display health chart
+                st.plotly_chart(create_health_chart(ingredients, health_scores), use_container_width=True)
+
+            # Display ingredient details with hyperlinks
+            st.subheader("Ingredient Details:")
+            for ingredient, score in zip(ingredients, health_scores):
+                health_category, color = get_health_category(score)
+                st.markdown(f"""
+                <div style="padding: 10px; border-radius: 5px; margin-bottom: 10px; background-color: {color}40;">
+                    <span style="font-weight: bold;">
+                        <a href='https://en.wikipedia.org/wiki/{ingredient.replace(' ', '_')}' target='_blank' style="color: {color};">{ingredient}</a>
+                    </span>: 
+                    <span style="color: {color};">{health_category}</span> (Score: {score}/10)
+                </div>
+                """, unsafe_allow_html=True)
+
+        except Exception as e:
+            st.error(f"An error occurred during analysis: {str(e)}")
+
 
 
 def parse_analysis(analysis):
@@ -137,7 +165,6 @@ def get_health_category(score):
 
 # Streamlit interface
 def main():
-    st.title("🍽️ AI-Powered Food Safety and Health Risk Predictor")
     st.write("Enter a food item, and our AI model will provide a comprehensive health assessment.")
 
     food_name = st.text_input("Enter the food item:", "")
