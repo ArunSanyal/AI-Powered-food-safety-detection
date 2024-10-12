@@ -1,10 +1,8 @@
 streamlit
 requests
-google-generativeai
+google-cloud-aiplatform
 Pillow
 matplotlib
-re
-os
 python-dotenv
 plotly
 textblob
